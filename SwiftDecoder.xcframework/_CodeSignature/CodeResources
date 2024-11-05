@@ -310,7 +310,7 @@
 		</data>
 		<key>ios-arm64/SwiftDecoder.framework/SwiftDecoder</key>
 		<data>
-		CKaKkM4+dwUsOLyj+4Wa/NbBo1U=
+		p1MCpoultYq6LCrHClhLZkN2jAs=
 		</data>
 		<key>ios-arm64/SwiftDecoder.framework/_CodeSignature/CodeResources</key>
 		<data>
@@ -630,7 +630,7 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/SwiftDecoder.framework/SwiftDecoder</key>
 		<data>
-		hhSn8ZcF7l1mrdzE+5GnpgXuJYY=
+		+o5wIrbtCG2i7THEDg6dcroRtPQ=
 		</data>
 		<key>ios-arm64_x86_64-simulator/SwiftDecoder.framework/_CodeSignature/CodeResources</key>
 		<data>
@@ -1487,11 +1487,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			CKaKkM4+dwUsOLyj+4Wa/NbBo1U=
+			p1MCpoultYq6LCrHClhLZkN2jAs=
 			</data>
 			<key>hash2</key>
 			<data>
-			mBw1xm6vW0u5T9CVc0oF5Ao2JHF5z98+B0KtGxvjeAg=
+			K18nMqBWfuHjf8V41B6QjBzhOO0FFeEgTDht1n4mffo=
 			</data>
 		</dict>
 		<key>ios-arm64/SwiftDecoder.framework/_CodeSignature/CodeResources</key>
@@ -2367,11 +2367,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			hhSn8ZcF7l1mrdzE+5GnpgXuJYY=
+			+o5wIrbtCG2i7THEDg6dcroRtPQ=
 			</data>
 			<key>hash2</key>
 			<data>
-			SrDAs5Npzyd/dO9lwlGUICTSCKxZvQIeIHH0nejZWfE=
+			ZtpY1fz+wokoPoNS7wJS5/tV3cKXGHe5i+MGkHtbQPs=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/SwiftDecoder.framework/_CodeSignature/CodeResources</key>
