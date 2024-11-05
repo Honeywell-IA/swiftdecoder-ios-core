@@ -1,0 +1,6 @@
+framework module SwiftDecoder {
+  umbrella header "SwiftDecoder.h"
+  export *
+
+  module * { export * }
+}
