@@ -18,8 +18,8 @@ typedef enum
     /** @brief Windowing disabled, full image is decoded */
 	OFF,
 	/** @brief Only barcodes that are within or crossing the defined window will be decoded  */
-	CENTERING,
+	CENTERINGMODE,
 	/** @brief Only barcodes completely within the defined window will be decoded */
-	WINDOWING
+	WINDOWINGMODE
         
 }WindowMode;

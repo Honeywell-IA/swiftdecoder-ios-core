@@ -1,253 +1,612 @@
-/* HONEYWELL CONFIDENTIAL AND PROPRIETARY!
- *
- * SwiftDecoder Mobile Decoding Software
- * 2015 Hand Held Products, Inc. d/b/a
- * Honeywell Scanning and Mobility
- * Patent(s): https://www.honeywellaidc.com/Pages/patents.aspx
- */
-
 //======================================================================================
 // DecoderInterface.h
 //======================================================================================
-// $Source: DecoderInterface.h $
-// $Revision: 93 $
-// $Date: 2010/06/19 14:19:03EDT $
-// $Author: Deloge,Stephen (E412317) $
-//======================================================================================
-
-//======================================================================================
-
-
-
-
+ 
 //---------------------------------------------------------------------------
 //
 //  Module Interface Description:
-//      This file contains the interface definitions to create and interact with
-//		the decoder(s). This module will create separate decoder threads for each
-//		decoder it will interact with.
+//      This file contains the interface definitions to create and interact with 
+//      the decoder(s). This module will create separate decoder threads for each 
+//      decoder it will interact with. 
 //
 //---------------------------------------------------------------------------
 
-/* Copyright 2009, Honeywell.  All Rights Reserved */
+/* Copyright 2020, Honeywell.  All Rights Reserved */
 
-#ifndef _DECODER_INTERFACE_H
-#define _DECODER_INTERFACE_H
+#ifndef DECODER_INTERFACE_H
+#define DECODER_INTERFACE_H
+
+/* Check if this is a DLL build */
+#ifdef DCL_IS_DLL
+   #define DCL_STDCALL __stdcall
+   #ifdef DCL_EXPORT
+      #define DCL_API __declspec(dllexport)
+   #endif
+   #ifndef DCL_API
+      #define DCL_API __declspec(dllimport)
+   #endif   /* !DCL_API */
+#else
+   #if __GNUC__ >= 4
+      #define DCL_API __attribute__ ((visibility ("default")))
+   #else
+      #define DCL_API 
+   #endif
+   #define DCL_STDCALL
+#endif   /* DCL_IS_DLL */
 
 /* Preamble */
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
-//Include the settings that apply to only the decoder that is built in.
-//#ifdef SWIFT_SOLO
+//Constants file
+#include "DecoderConstants.h"
+
+//Overall config file for the control logic
+#include "DecoderConfig.h"
+   
+//Settings that apply to multiple decoders. Still may not apply to all decoders, so be wary for now...
+#include "DecoderSettings.h"
+
+//size_t
+#include <stddef.h>
+
+//Include the settings that apply to decoders that are built in.
+#if (DECODER_ID)
 #include "SwiftSettings.h"
-//#else
-//#include "AdaptusSettings.h"
-//#endif
-#include "DecoderSettings.h"	// architecturally felt necessary to separate properties and API, perhaps apply always
+#endif
+
+#if (DECODER_FLD)
+//#include "FastLinearSettings.h" //not done yet, will have at least something in it
+#endif
 
 /* Decoder Structures
- *	These are the structures by the decoder.
+ *  These are the structures by the decoder.
+ */
+
+/**
+ *  \brief Callback tags used in InstallCallback.
  */
 typedef enum {
-	CB_PRINTF,
-	CB_TIMER,
-	CB_RESULT,
-	CB_RESULT_NOTIFY,
-	CB_WATCHDOG,
-	CB_STATUS,
-	CB_PROGRESS
+   CB_PRINT,
+   CB_TIMER,
+   CB_RESULT,
+   CB_RESULT_NOTIFY,
+   CB_WATCHDOG,
+   CB_STATUS,
+   CB_PROGRESS
 } CallbackTag;
 
+/** \brief An image's orientation. */
+typedef enum DEC_Orientation {
+   DEC_ORIENTATION_UPRIGHT           = 0,
+   DEC_ORIENTATION_RIGHT_SIDE_DOWN   = 1,
+   DEC_ORIENTATION_UPSIDE_DOWN       = 2,
+   DEC_ORIENTATION_LEFT_SIDE_DOWN    = 3,
+} DEC_Orientation;
+
+/**
+ *   \brief Defines a Point in the image coordinate system.
+ */
 typedef struct {
-	int x;
-	int y;
+   int x;
+   int y;
 } Point_tag;
 
+/**
+ *   \brief The collection of points that defines the boundry of the barcode.
+ */
 typedef struct {
-	Point_tag corners[4];
+   Point_tag corners[4];
 } Bounds;
 
+/**
+ *   \brief Information for IQ imaging functions with Image Core.
+ */
 typedef struct {
-	Bounds bounds;
-	int d_corner;
-	int pdfRows;
-	int pdfCols;
+   Bounds bounds;
+   int d_corner;
+   int pdfRows;
+   int pdfCols;
 } IQImageInfo_t;
 
+/**
+ *   \brief Only used with Progressive Decoding.
+ */
 typedef struct {
-	int frameID;
-	int line;
-	int state;
+   int frameID;
+   int line;
+   int state;
 } CircluarBufferState;
 
-typedef enum {
-	DEC_TYPE_FAST = 0,
-	DEC_TYPE_FULL = 1
-} DecodeType_t;
-
-typedef struct {
-	unsigned char Data[MAX_DECODED_DATA_LENGTH];
-	int Length;
-	Bounds MainBounds;
-	Point_tag GraphicalCenter;
-	unsigned int Symbology;
-	unsigned int SymbologyEx;
-	int Modifier;
-	int ModifierEx;
-	char CodeID;
-	char AIMCodeLetter;
-	char AIMModifier;
-	IQImageInfo_t IQImageInfo;
-	int Parity;
-	int AppendType;
-	int AppendIndex;
-	int AppendTotal;
-	int LinkFlag;
-	int ProgrammingCode;
-	DecodeType_t DecodeType;
+/**
+ * \brief Result structure that is passed through the Result Callback (CB_RESULT). Each result will have its own structure.
+ */
+typedef struct DecoderResult {
+   unsigned char Data[MAX_DECODED_DATA_LENGTH]; /// Decoded data.
+   int Length;                                  /// Number of characters in data. 
+   Bounds MainBounds;                           /// Graphical boundry of barcode. 
+   Point_tag GraphicalCenter;                   /// Graphical center of barcode.
+   unsigned int Symbology;                      /// Symbology identifer. \see symbologyID
+   unsigned int SymbologyEx;                    /// Extended symbology identifier. \see symbologyExID
+   int Modifier;                                /// Modifier information of symbology identifier.
+   int ModifierEx;                              /// Extended mofifier information.
+   char HHPCodeID;                              /// HHP Code identifier. \see hhpID
+   char AIMCodeLetter;                          /// AIM identifier. \see aimID
+   char AIMModifier;                            /// AIM modifier information.
+   IQImageInfo_t IQImageInfo;                   /// IQ imaging information.
+   int Parity;                                  /// Parity information. Applies to Data Matrix Append
+   int AppendType;                              /// Append idenfifier. \see appendType
+   int AppendIndex;                             /// Index of the result in the append sequence.
+   int AppendTotal;                             /// Total number of results in the append sequence.
+   int LinkFlag;                                /// Composite linking flag type.
+   int ProgrammingCode;                         /// Reader programming code flag.
+   int DecodeType;                              /// Decoder type that issued the result.
 } DecoderResult;
 
-/* Decoder Functions
- *	These are the functions used to communicate to the decoder.
+/**
+ *   \brief Image structure used with DEC_INJECT_MODE_IMAGE.
  */
+typedef struct DecoderImage {
+   int Height;
+   int Width;
+   int LineDelta;
+   int Monocolor;
+   int CenterX;
+   int CenterY;
+   void *pixels;
+   struct DecoderImage *next;
+} DecoderImage;
 
-int InitDecoder( int width, int height, int wrap );
-void DestroyDecoder( void );
-
-void ReportDecoderVersion( int type, char *reportString );
-
-int InstallCallback( /*Callback*/ unsigned int tag, void *function );
-
-int Decode( void *image, int decodeType );
-int StopDecode(void);
-int ContinueDecode(void);
-int PauseDecode(void);
-
-int DecodeGet( unsigned int tag, void *data );
-int DecodeSet( unsigned int tag, void *data );
-void DecodeReset( void );
-
-int GetLastDecoderError(void); //doesn't do anything, need to define how this will work.
-
-/*
-	Temperature -- measure of how far along decoder is, not sure how to make portable
+#pragma pack(push, 1)
+/**
+*   \brief Monocolor settings for an image
 */
- #define COLD 2    // Just searching for symbols
- #define LUKEWARM 5   // Evidence of a particular symbol has been found
- #define WARM 8    // The type of symbol has been confirmed; Data is being collected
- #define HOT 16    // Data capture has been successful at some level, with more to go
- #define COOKED 48 //  A fully valid read has occurred; putting on finishing touches
+typedef struct MonocolorSettingsTag {
+    int enabled;
+    int offset_x;
+    int offset_y;
+    int spacing_x;
+    int spacing_y;
+} MonocolorSettings;
 
 
-/* Debug
+/** \brief Image with attributes to decode
+ * \deprecated Direct access to the fields of this struct is deprecated.
+ * \sa See DEC_ImagePropertiesAlloc, DEC_ImagePropertiesFree, and other DEC_ImageProperties functions.
+ */
+typedef struct ImagePropertiesTag {
+    size_t size;
+    unsigned char* buffer;
+    int width;
+    int height;
+    int line_delta;
+    int aimer_center_x;
+    int aimer_center_y;
+    MonocolorSettings monocolor;
+    int noise_level;
+    int orientation;
+    int mirror_image;
+    int binning_size;
+} ImageProperties;
+#pragma pack(pop)
+
+
+/** \brief A Region Of Interest (ROI).
  *
- * These are the constants to dig into a specific level of the interface. Used only for debug set/get purposes for now.
- * They are what is passed into the "level" parameter of the debug functions below.
+ * This defines a region within the image in which the decoder should attempt
+ * to decode barcodes.
+ */
+typedef struct DEC_Roi DEC_Roi;
+
+
+/** \brief A list of Regions Of Interests (ROIs) input to the decoder.
+ *
+ * This list may be retrieved via the #DEC_ImagePropertiesInitRoiList function.
+ */
+typedef struct DEC_RoiList DEC_RoiList;
+
+
+/**
+ *  \defgroup apiFunctions Functions
+ *  @{
  */
 
-#define DECODER_INTERFACE		0xDEC0
-#define SWIFT_INTERFACE			0xDEC1
-#define SWIFT_DECODER			0xDEC2
-#define RAPIDSCAN_INTERFACE		0xDEC3
-#define RAPIDSCAN_DECODER		0xDEC4
+/** 
+ *  InitDecoder:
+ *  
+ *  \brief Creates and initializes the Decoder Control Logic and all decoder libraries.
+ *  
+ *  \param [in] width The number of columns of the expected image data in pixels.
+ *  \param [in] height The number of rows of the image data in pixels.
+ *  \param [in] wrap The number of bytes a row of in memory.
+ *  \return The combination of handles of the decoder libraries that are created and initialized.
+ *  
+ *  \details This must be called before using any other API function, aside from DestroyDecoder().
+ */
+DCL_API int DCL_STDCALL InitDecoder( int width, int height, int wrap );
 
-int DecodeGetDebug( unsigned int level, unsigned int tag, void *data );
-int DecodeSetDebug( unsigned int level, unsigned int tag, void *data );
 
+
+/** 
+ *  DestroyDecoder:
+ *  
+ *  \brief Destroys the DCL and any decoder libraries that were created and initialized with InitDecoder().
+ *  
+ *  \return Nothing.
+ *  
+ *  \details This function must be called when finished using any of the decoders.
+ */
+DCL_API void DCL_STDCALL DestroyDecoder( void );
+
+
+/** 
+ *  ReportDecoderVersion:
+ * 
+ *  \brief Copies the revision string of the type requested.
+ *  
+ *  \param [in] type Flag(s) of the revision string(s) being requested.
+ *       DEC_REVISION_CONTROL_LOGIC   0x01
+ *       DEC_REVISION_ID              0x02
+ *       DEC_REVISION_FLD             0x08
+ *  \param [out] reportString Memory space into which the revision string(s) will be copied.
+ *  \return Nothing.
+ *  
+ *  \details The memory space must be long enough for the string(s) to be copied into. Since there is no length
+ *       input to this function, the size of the memory cannot be checked. Each string is not more than 50 characters
+ *       long, so if you are unsure of the length that will be returned, request one type at a time and copy the
+ *       resulting string elsewhere.
+ */
+DCL_API void DCL_STDCALL ReportDecoderVersion( int type, char *reportString );
+
+
+/** 
+ *  InstallCallback:
+ *  
+ *  \brief Installs callback functions to the function tag to be used during decoding.
+ *  
+ *  \param [in] tag Function tag to tie the callback function to. 
+ *  \param [in] function Function to be used for the callback.
+ *  \return Non-zero if function succeeds. 
+ *  
+ *  \details The only reason for failure of this function is if the tag used is not part of the tag enum. If the
+ *       function that is tied to a particular tag is incorrect, unexpected things will happen. 
+ *       Callback functions prototypes:
+ *          typedef  void (*fPrint_t)       (char *);
+ *          typedef  int  (*fTimer_t)       (void);
+ *          typedef  void (*fResult_t)      (int, DecoderResult *);
+ *          typedef  void (*fResultNotify_t)(int);
+ *          typedef  void (*fWatchDog_t)    (void);
+ *          typedef  void (*fStatus_t)      (int, int);
+ *          typedef  void (*fProgress_t)    (int);
+ * 
+ *  \see CallbackTag
+ */
+DCL_API int DCL_STDCALL InstallCallback( unsigned int tag, void *function );
+
+
+/** 
+ *  Decode:
+ *  
+ *  \brief Decodes the image data using the specified decoder library.
+ *  
+ *  \param [in] image Data to be decoded.
+ *  \param [in] decodeType Decoder library to use.
+ *  \return Depends on decoder library used to decode.
+ *  
+ *  \details The DCL can have many different decode libraries wrapped inside it. Each one has its own definitions of
+ *       return values for their decode functions. There will be an attempt to harmonize the return values, or at 
+ *       the very least document each one. 
+ *
+ *  \see decType
+ */
+DCL_API int DCL_STDCALL Decode( void *image, int decodeType );
+
+
+/**
+ *  DecodeImage:
+ *
+ *  \brief Decodes the image data with provided attributes using the specified decoder library.
+ *
+ *  \param [in] image data with attributes to be decoded.
+ *  \param [in] decoder library to use.
+ *  \return Depends on decoder library used to decode.
+ *
+ *  \details The DCL can have many different decode libraries wrapped inside it. Each one has its own definitions of
+ *       return values for their decode functions. There will be an attempt to harmonize the return values, or at
+ *       the very least document each one.
+ *
+ *  \see decType
+ */
+DCL_API int DCL_STDCALL DecodeImage(ImageProperties* imageProperties, int decodeType);
+
+
+/** 
+ *  StopDecode:
+ *  
+ *  \brief Stops the decoder library.
+ *  
+ *  \return Non-zero if the decoder was told to stop. 
+ *  
+ *  \details Depending on the decoder library, this function might not be applicable. Also depending on the library,
+ *       this function might only be available to be called at certain times. In general, this function will be responded 
+ *       to during the execution of any of the callbacks installed.
+ */
+DCL_API int DCL_STDCALL StopDecode(void);
+
+
+/** 
+ *  ContinueDecode:
+ *  
+ *  \brief Continues the symbology that was processing when the Status callback was called. 
+ *  
+ *  \return Non-zero if the decoder was successfully told to continue. 
+ *  
+ *  \details Details
+ */
+DCL_API int DCL_STDCALL ContinueDecode(void);
+
+
+/** 
+ *  PauseDecode:
+ *  
+ *  \brief Stops the current symbology being processed.
+ *  
+ *  \return Non-zero if the decoder was successfully told to pause.
+ *  
+ *  \details Details
+ */
+DCL_API int DCL_STDCALL PauseDecode(void);
+
+
+/** 
+ *  DecodeGet:
+ *  
+ *  \brief Copies the value of the API tag to the memory space pointed to by data.
+ *  
+ *  \param [in] tag Decoder configuration tag.
+ *  \param [out] data Memory space for value to be copied into.
+ *  \return Non-zero if the data was retrieved successfully.
+ *  
+ *  \details Details
+ */
+DCL_API int DCL_STDCALL DecodeGet( unsigned int tag, void *data );
+
+
+/** 
+ *  DecodeSet:
+ *  
+ *  \brief Configures the API tag with the data.
+ *  
+ *  \param [in] tag Decoder configuration tag.
+ *  \param [in] data Value to be set.
+ *  \return Non-zero if the data was stored successfully.
+ *  
+ *  \details Details
+ *  
+ */
+DCL_API int DCL_STDCALL DecodeSet( unsigned int tag, void *data );
+
+/** 
+ *  DecodeReset:
+ *  
+ *  \brief Sets the DCL and decoder library settings to their default values.
+ *  
+ *  \return Nothing
+ *  
+ *  \details Details
+ */
+DCL_API void DCL_STDCALL DecodeReset( void );
+
+
+/** 
+ *  GetLastDecoderError:
+ *  
+ *  \brief Returns the error code of the last error that occurred.
+ *  
+ *  \return Error code of the last error that occurred.
+ *  
+ *  \details Details
+ */
+DCL_API int DCL_STDCALL GetLastDecoderError(void);
+
+
+/**
+ *  ClearDecoderResults:
+ *  
+ *  \brief This function clears all stored partial results.
+ *
+ *  \return Nothing.
+ *  
+ *  \details Some append types in certain modes can store partial results so that a full result
+ *    can be read across multiple images. For append types that are allowed to go across multiple
+ *    images, but not across multiple trigger activations (assuming there are more than 1), it is
+ *    important to clear these partial results. Clearing these partial results will avoid mixing 
+ *    other pieces of the same append type and coming up with the wrong ultimate result.
+ *  
+ *    The only example so far of potential mixing of multiple symbols possible is Travel Document 1
+ *    Passport reading, specifically mixing the 3rd row with rows 1 and 2 of another passport. Rows 1 and 2
+ *    have a Composite Checksum calculation, but that calculation does not include row 3. Therefore, if rows 1
+ *    and 2 are read in 1 trigger pull, and row 3 of another TD-1 is read in another trigger pull, inside the
+ *    number of images specified by DEC_OCR_SECURITY, then all rows would be combined into a single result and 
+ *    returned by the decoder. 
+ *  
+ *  \see Partial Result
+ *  \see DEC_OCR_SECURITY
+ */
+DCL_API void DCL_STDCALL ClearDecoderResults(void);
+
+
+/** \brief Allocate an #ImageProperties object.
+ *
+ * The #ImageProperties object is the primary input to the decoder.
+ *
+ * \return pointer to #ImageProperties object on success, NULL on failure.
+ */
+DCL_API ImageProperties *DCL_STDCALL DEC_ImagePropertiesAlloc(void);
+
+/** \brief Free an #ImageProperties object.
+ *
+ * If \c imageProperties is NULL or \c *imageProperties is NULL, this function
+ * has no effect. Otherwise, this function frees the #ImageProperties object,
+ * which must have been allocated by #DEC_ImagePropertiesAlloc, then sets the
+ * supplied pointer, \c *imageProperties, to NULL.
+ * 
+ * \return 0 on success, DEC_ERR_INVALID_ARGUMENT on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesFree(
+    //! [in,out] pointer to the #ImageProperties object to free
+    const ImageProperties **imageProperties
+    );
+
+/** \brief Set the pointer to the image data in an #ImageProperties object.
+ * \return 0 on success, DEC_ERR_INVALID_ARGUMENT on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetBuffer(
+    ImageProperties *imageProperties,  //!< [in,out] image properties to modify
+    unsigned char *buffer              //!< [in] pointer to the image data
+    );
+
+/** \brief Set the dimensions of the image in an #ImageProperties object.
+ * \return 0 on success, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetDimensions(
+    ImageProperties *imageProperties,  //!< [in,out] image properties to modify
+    int width,                         //!< [in] image width in pixels
+    int height,                        //!< [in] image height in pixels
+    int line_delta                     //!< [in] number of bytes per row in the image
+    );
+
+/** \brief Set the coordinates of the search center (often the aimer) in an
+ *         #ImageProperties object.
+ * \return 0 on success, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetSearchCenter(
+    ImageProperties *imageProperties,  //!< [in,out] image properties to modify
+    int x,                             //!< [in] x-coordinate of the search center
+    int y                              //!< [in] y-coordinate of the search center
+    );
+
+/** \brief Set the #MonocolorSettings in an #ImageProperties object.
+ * \return 0 on success, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetMonocolorSettings(
+    ImageProperties *imageProperties,            //!< [in,out] image properties to modify
+    const MonocolorSettings *monocolor_settings  //!< [in] monocolor settings to set
+    );
+
+/** \brief Set the approximate noise level of the image in an #ImageProperties object.
+ * 
+ * The noise level affects the calculation of IQ Score in FLD and may be used
+ * for other purposes as well.
+ * 
+ * \return 0 on success, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetNoise(
+    ImageProperties *imageProperties,  //!< [in,out] image properties to modify
+    int noise_level                    //!< [in] noise level; must be in the range [0, 255]
+    );
+
+/** \brief Set the orientation of the image in an #ImageProperties object.
+ * \return 0 on success, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetOrientation(
+    ImageProperties *imageProperties,  //!< [in,out] image properties to modify
+    DEC_Orientation orientation        //!< [in] image orientation
+    );
+
+/** \brief Set a value indicating whether the image in an #ImageProperties object is mirrored.
+ *
+ * By default, the mirror property is 0 (not mirrored).
+ *
+ * \return 0 on success, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetMirror(
+    ImageProperties *imageProperties,  //!< [in,out] image properties to modify
+    int mirror_image                   //!< [in] 1 if the image is mirrored, 0 otherwise
+    );
+
+/** \brief Set the binning size in an #ImageProperties object.
+ *
+ * When the binning size, B, is greater than 1, the decoder will downsample
+ * the image by averaging every BxB region in the image, with a stride of B.
+ *
+ * By default, the \p binning_size is 1, meaning binning is disabled.
+ *
+ * \return 0 on success, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_ImagePropertiesSetBinningSize(
+   ImageProperties *imageProperties,  //!< [in,out] image properties to modify
+   int binning_size                   //!< [in] binning size; must be 1 or 2
+   );
+
+/** \brief Initialize and retrieve the list of ROIs associated with an
+ *         #ImageProperties object.
+ *
+ * Before this function is called for the first time on an #ImageProperties
+ * object, the ROI list for that #ImageProperties object is empty. After this
+ * function is called, the ROI list will be cleared. Whenever the list is
+ * empty, a call to #DecodeImage will cause the decoder to decode the current
+ * image using the currently configured DEC_ROI_MODE.
+ * 
+ * This function will only fail if the given #ImageProperties object was not
+ * allocated by calling #DEC_ImagePropertiesAlloc.
+ *
+ * \return pointer to ROI list on success, NULL on failure.
+ */
+DCL_API DEC_RoiList *DCL_STDCALL DEC_ImagePropertiesInitRoiList(
+    ImageProperties *imageProperties  //!< [in,out] image properties to modify
+    );
+
+
+/** \brief Add a new ROI to a #DEC_RoiList.
+ *
+ * The rectangle defined by the given upper-left and lower-right coordinate
+ * pairs is half-open, meaning the upper-left point is included in the ROI,
+ * but the lower-right point is not.
+ * 
+ * If the given ROI lies partially outside the input image, it will be clipped
+ * to lie within the image. If it is fully outside the image, it will be
+ * ignored.
+ * 
+ * \return pointer to newly-added ROI on success, NULL on failure.
+ */
+DCL_API DEC_Roi *DCL_STDCALL DEC_RoiListAddRoi(
+   DEC_RoiList *roi_list,  //!< [in,out] The ROI list to which to add the ROI
+   int x0,                 //!< [in] x-coordinate of top-left corner of ROI
+   int y0,                 //!< [in] y-coordinate of top-left corner of ROI
+   int x1,                 //!< [in] x-coordinate of bottom-right corner of ROI
+   int y1                  //!< [in] y-coordinate of bottom-right corner of ROI
+   );
+
+/** \brief Set the symbologies that the decoder will try to decode in the ROI.
+ *
+ * By default, the decoder will try all enabled symbologies on a given ROI.
+ * 
+ * \return 0 on SUCCESS, one of DEC_ERR_xxx codes on failure.
+ */
+DCL_API int DCL_STDCALL DEC_RoiSetSymbologies(
+   DEC_Roi *roi,  //!< [in,out] The ROI to which to apply the symbologies
+   //! [in] List of symbologies to try within the ROI.
+   //!      If NULL, decoder will try all enabled symbologies.
+   //!      This parameter should point to an array composed of pairs of
+   //!      unsigned ints of the form (DEC_SYMBOLOGY_x, 0) or
+   //!      (0, DEC_SYMBOLOGY_EX_y). The non-EX symbology value should always
+   //!      be the first value of each pair.
+   const unsigned int *symbologies,
+   //! [in] Number of symbologies in \p symbologies.
+   //!      If 0, decoder will try all enabled symbologies.
+   //!      This is the number of \e pairs of constants, each representing 1
+   //!      symbology--not the number of unsigned ints in the array.
+   size_t n_symbologies
+   );
+
+
+
+/** @} */
 /* Postamble */
 #ifdef __cplusplus
 }
-#endif  /* __cplusplus */
-#endif //_DECODER_INTERFACE_H
+#endif
 
-//======================================================================================
-//$Log: DecoderInterface.h  $
-//Revision 1.32.1.3 2010/06/19 14:19:03EDT Deloge,Stephen (E412317)
-//Added Temperature Stuff mostly as placeholder
-//Revision 1.32.1.2 2010/06/19 10:54:33EDT Deloge,Stephen (E412317)
-//Relocated settings to unique file because they will be included at mulitple levels in PDT build.
-//Likely a change worth considering globally, but done in variant for now.
-//Revision 1.32 2010/06/02 16:04:57EDT McGovern,Matt (E412472)
-//Added error codes. Same codes as sd.h, will add more for logic level.
-//Revision 1.31 2010/05/25 00:20:47EDT McGovern,Matt (E412472)
-//Removed ProgrammingFlag from decoderresult struct. Apparently that was the original flag, but in version 1.8
-//of this file, i added ProgrammingCode, which is used throughout the logic and the system, so I'm just sticking with
-//that.
-//Revision 1.30 2010/05/10 12:57:20EDT Meier,Timothy (E412415)
-//New function headers for ContinueDecoding and PauseDecoding
-//Revision 1.29 2010/03/26 14:45:32EST McGovern,Matt (E412472)
-//Added more macros for AIM and Code IDs.
-//Revision 1.28 2010/03/18 14:37:04EDT Meier,Timothy (E412415)
-//Added support for the enabling of CANENA2 which will allow the bar output for Canadian post instead
-//  of the actual bar code data.  This is to be matched up with ID 9.15.
-//Revision 1.27 2010/03/17 15:18:13EST McGovern,Matt (E412472)
-//Hooked up mirror image setting.
-//Revision 1.26 2010/03/04 23:53:31EST McGovern,Matt (E412472)
-//Added new debug set/get in order to get/set variables at different levels. At the beginning stages of development.
-//In its current form, you can only really get/set into the swift decoder directly. DECSET can still be used
-//in its original form controling things from the outside using non-debug functions.
-//Revision 1.25 2010/02/18 04:28:15EST McGovern,Matt (E412472)
-//Moved get energy from adaptus to common decoder to use with Rapidscan.
-//Revision 1.24 2010/02/18 03:26:59EST McGovern,Matt (E412472)
-//Moved Security Level setting from adaptus only to common decoder since it does apply to Rapidscan.
-//Revision 1.23 2010/02/15 14:16:15EST McGovern,Matt (E412472)
-//Changed symbology variables in decoder struct to unsigned ints to remove compile warning.
-//Revision 1.22 2010/02/15 13:56:36EST McGovern,Matt (E412472)
-//Added canadian post option to the postal options table.
-//Revision 1.21 2010/02/09 15:23:54EST McGovern,Matt (E412472)
-//Changed korea post check digit required to check digit transmit since it's always required.
-//Revision 1.20 2010/02/04 16:15:00EST McGovern,Matt (E412472)
-//Changed version reporting function to have a type parameter, so it can get just any combination of the control logic,
-//fast decoder, and full decoder revisions.
-//Revision 1.19 2010/02/03 01:12:54EST McGovern,Matt (E412472)
-//Added a DEC_HALT flag. used for length checking on composites.
-//Revision 1.18 2010/01/22 14:15:12EST Meier,Timothy (E412415)
-//DEC_IMAGE_CENTER_X and DEC_IMAGE_CENTER_Y now part of DecodeInterface instead of AdaptusSettings, because
-//  it can be used with ID as well.
-//Revision 1.17 2010/01/22 10:19:37EST McGovern,Matt (E412472) 
-//Added GraphicalCenter point to result structure.
-//Revision 1.16 2010/01/22 05:02:38EST McGovern,Matt (E412472) 
-//Moved decode in window settings to the common decoder.
-//Revision 1.15 2010/01/21 16:12:33EST McGovern,Matt (E412472) 
-//Removed a whole ton of comments about the status of certain commands. Some still remain and will stay 
-//until the comment is no longer valid. Added code 39 start/stop and base 32 settings.
-//Revision 1.14 2010/01/18 16:12:37EST McGovern,Matt (e412472) 
-//Added image height,width,wrap settings.
-//Revision 1.13 2010/01/14 03:15:10EST McGovern, Matthew (e412472) 
-//Removed some comments saying the OCR was not implemented, since it is now. 
-//Revision 1.12 2009/12/17 16:34:49EST McGovern, Matthew (e412472) 
-//Removed depricated tags. Added postal enable tag. Added AIM, HHP, and Swift constants.
-//Added comments to each tag describing it's state, Most likely these are already out of date so please
-//do not refer to them. I mention it only to describe the amount of change to most of the tags. 
-//Revision 1.11 2009/12/03 13:15:53EST McGovern, Matthew (e412472) 
-//Added a COMBINE_COMPOSITES tag. Changed DecodeGet() to return an int.
-//Revision 1.10 2009/11/30 17:56:18EST McGovern, Matthew (e412472) 
-//Changed the IQImageInfo corners to be "bounds", since Bounds are defined as 4 corners.
-//Revision 1.9 2009/11/25 16:13:02EST McGovern, Matthew (e412472) 
-//Added security level tag and fast/full decoder enable tags. Removed supplemental stuff from structure.
-//Added decodeType to structure and Decode().
-//Revision 1.8 2009/11/17 17:50:55EST McGovern, Matthew (e412472) 
-//Redid all of the tag values so they have some order and structure. Removed many commands and placed
-//then in separate files if they were valid only with a specific decoder. Also added ProgrammingCode value
-//so the decode result structure.
-//Revision 1.7 2009/11/12 17:27:32EST McGovern, Matthew (e412472) 
-//Removed the quick addition of DEC_ID tags.
-//Revision 1.6 2009/11/11 18:11:23EST McGovern, Matthew (e412472) 
-//Added ID_prop settings. Can be changed/seen with DECSET only for now. 
-//Revision 1.5 2009/11/11 17:39:47EST McGovern, Matthew (e412472) 
-//Changed some tags. 
-//Revision 1.4 2009/10/29 15:23:02EDT McGovern, Matthew (e412472) 
-//Added new ID MLD settings. 
-//Revision 1.3 2009/10/09 12:04:22EDT McGovern, Matthew (e412472) 
-//Again, too many changed to capture here. This interface is very much in development, and
-//there was a change to the development points. This is to capture a workign version now and
-//test with something known. 
-//Revision 1.2 2009/09/22 10:04:28EDT McGovern, Matthew (e412472) 
-//Added DEC_ prefix to each config tag in order to keep mxapi.h tags as they were for the 
-//sake of previous version testing. 
-//Revision 1.1 2009/09/16 18:34:20EDT McGovern, Matthew (e412472) 
-//Initial revision
-//Member added to project d:/MKS_IT/Matrix/DecoderController/SharedDecCtrlIncl.pj
-//======================================================================================
+#endif //DECODER_INTERFACE_H

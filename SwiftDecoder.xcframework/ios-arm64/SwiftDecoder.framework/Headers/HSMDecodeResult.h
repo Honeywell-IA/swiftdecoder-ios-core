@@ -44,7 +44,7 @@
 @property (assign) int length;
 
 /**
- * @brief This property contains the time it took for the decoder to decode the image  
+ * @brief This property contains the time it took for the decoder to decode the image
  */
 @property (assign) int decodeTime;
 
@@ -87,5 +87,6 @@
  * @brief This property contains the AIM modifier
  */
 @property (assign) char aimModifier;
+
 
 @end

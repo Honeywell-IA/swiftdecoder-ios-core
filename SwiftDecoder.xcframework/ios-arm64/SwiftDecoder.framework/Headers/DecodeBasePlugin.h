@@ -28,6 +28,7 @@
     CGFloat overlayTextHeight;
 }
 
+@property (nonatomic, assign) BOOL enableTouchResizingEnable;
 @property(weak, nonatomic) id<DecodeBasePluginProtocol> delegateDecodeBasePluginProtocol;
 
 /// @brief This method enables vibration when a barcode is successfully decoded.
@@ -175,4 +176,6 @@
 -(void) drawOverlayText:(CGContextRef)context Rect:(CGRect)rect;
 
 -(void) solveOverlayTextStretchIssue:(CGRect)rect;
+-(void)setEnableTouchResizingEnable:(BOOL)enable;
+
 @end

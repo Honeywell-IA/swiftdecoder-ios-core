@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name               = "SwiftDecoder"
-  spec.version            = "6.0.11"
+  spec.version            = "6.2.3"
   spec.platform = :ios, '13.0'
   spec.ios.deployment_target = '13.0'
   spec.summary            = "SwiftDecoder"
@@ -10,7 +10,7 @@ Pod::Spec.new do |spec|
   spec.author             = { "Honeywell" => "SwiftDecoder-Team" }
   spec.source            = { 
 	:git => "https://github.com/Honeywell-IA/swiftdecoder-ios-core.git",
-      	:tag => "6.0.11"
+      	:tag => "6.2.3"
 }
 spec.vendored_frameworks = 'SwiftDecoder.xcframework'
 end

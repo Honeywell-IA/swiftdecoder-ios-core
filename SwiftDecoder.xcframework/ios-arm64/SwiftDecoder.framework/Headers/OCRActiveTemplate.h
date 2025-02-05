@@ -14,7 +14,7 @@ typedef enum
     /** @brief This is the user defined OCR template*/
     OCR_USER                        = 1,
     /** @brief This is the internally defined Passport template */
-    OCR_PASSPORT                    = 2,
+    OCR_PASSPORT_TEMPLATE                    = 2,
     /** @brief This is the internally defined ISBN template */
     OCR_ISBN                        = 4,
     /** @brief This is the internally defined Price Field template */
