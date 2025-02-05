@@ -56,4 +56,6 @@
  * @brief The height of the image the barcode was found in
  */
 @property (assign) int imageHeight;
+
+- (CGPoint)getCentroid;
 @end
