@@ -5,10 +5,7 @@
  * @brief A SwiftPlugin used to dynamically change the windowing used for decoding
  */
 @interface WindowingPlugin : DecodeBasePlugin <DecodeBasePluginProtocol>
-{
-        @private
-        Boolean enableWindowAimer,  hideWindowAimer;
-}
+
 /**
  * @brief Sets the window mode
  *

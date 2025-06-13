@@ -157,5 +157,4 @@ typedef enum {
  *
  */
 -(PLUGIN_TYPE)pluginType;
-
 @end

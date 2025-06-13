@@ -572,17 +572,4 @@
  *
  */
 -(Resolution)getCameraResolutionForString:(NSString*)resolutionStr;
-
-/**
- * @brief Enables Undecoded Barcode  ROI's Detection as part of HSMDecodeResult.
- *             Once enabled the AR features Preview Select and Batch will render separate
- *             overlay for Undecoded Barcodes    ROI's
- * @return Boolean on Successful enable of this feature
- */
--(BOOL)enableUndecodedBarcodeDetection;
-
-/**
- * @brief Disbales Undecoded Barcode ROI's Detection.
- */
--(void) disableUndecodedBarcodeDetection;
 @end

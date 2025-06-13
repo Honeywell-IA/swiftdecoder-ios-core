@@ -31,7 +31,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, retain) NSString *overlayText;
 @property (nonatomic, assign) float width;
 @property (nonatomic, assign) float height;
-@property (nonatomic, assign)BOOL renderUndecodedOverlay;
 
 -(void) clearOverlayData;
 -(void)updateOverlayData:(AROverlayView*)ref;
@@ -45,8 +44,6 @@ NS_ASSUME_NONNULL_BEGIN
 -(void) decrementDisplayCountDown;
 -(int) getDisplayCountDown;
 -(void) resetDisplayCountDown;
--(void) setUndecodedOverlayRendering:(BOOL) flag;
--(void)removeRotationforSubviews;
 @end
 
 NS_ASSUME_NONNULL_END

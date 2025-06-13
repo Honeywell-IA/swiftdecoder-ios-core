@@ -50,15 +50,4 @@
 -(int)setCodabarLength:(NSArray*)array;
 -(NSArray*)getCodabarLength;
 - (NSString*)getSymbologyString:(int)symb SymbEx:(int)symbEx;
--(void)objectDetectorDetect:(char*)image_data withWidth:(int)width withHeight:(int)height;
--(BOOL)enableMLROI;
--(void)disableMLROI;
--(int)ObjectDetectorGetXMinAtIndex:(int)index;
-- (HSMDecodeResultArray*) decodeForMLROI:(unsigned char *)image Width:(int)previewWidth Height:(int)previewHeight;
--(BOOL)isMLROIEnabled;
--(int)objectDetectorGetNumberOfROIs;
-//-(void)decodeMultiEngine :(CVPixelBufferRef) pixelBuffer;
--(HSMDecodeResultArray*)decodeMultiEngine :(char*) imgPtr withWidth:(int)imageWidth withHeight:(int)imageHeight;
-
--(HSMDecodeResultArray*)getResultsForMLROI;
 @end
