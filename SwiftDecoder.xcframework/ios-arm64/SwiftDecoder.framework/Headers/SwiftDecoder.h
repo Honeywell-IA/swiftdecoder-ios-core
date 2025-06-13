@@ -36,6 +36,8 @@ FOUNDATION_EXPORT const unsigned char HSMDecoderBAPIVersionString[];
 #import <SwiftDecoder/HSMDecodeResult.h>
 #import <SwiftDecoder/DecoderInterface.h>
 #import <SwiftDecoder/DecoderSettings.h>
+#import <SwiftDecoder/DecoderConstants.h>
+#import <SwiftDecoder/DecoderConfig.h>
 #import <SwiftDecoder/SwiftSettings.h>
 #import <SwiftDecoder/Symbology.h>
 #import <SwiftDecoder/BarcodeBounds.h>

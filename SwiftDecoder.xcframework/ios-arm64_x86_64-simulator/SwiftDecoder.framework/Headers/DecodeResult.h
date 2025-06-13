@@ -16,6 +16,12 @@ typedef enum
 }DecodeResultType;
 @interface DecodeResult : NSObject
 
+/**
+ * @brief Returns status of the result Symbology is decoded or undecoded
+ *
+ */
+@property (assign) BOOL decodedSymbology;
+
 -(id)initWithDecodeResultType:(DecodeResultType)resultType;
 @end
 

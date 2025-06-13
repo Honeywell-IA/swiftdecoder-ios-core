@@ -1,24 +1,6 @@
-/* HONEYWELL CONFIDENTIAL AND PROPRIETARY!
- *
- * SwiftDecoder Mobile Decoding Software
- * 2015 Hand Held Products, Inc. d/b/a
- * Honeywell Scanning and Mobility
- * Patent(s): https://www.honeywellaidc.com/Pages/patents.aspx
- */
-
 //======================================================================================
 // DecoderSettings.h
 //======================================================================================
-// $Source: DecoderSettings.h $
-// $Revision: 229 $
-// $Date: 2010/06/19 10:52:45EDT $
-// $Author: Deloge,Stephen (E412317) $
-//======================================================================================
-
-//======================================================================================
-
-
-
  
 //---------------------------------------------------------------------------
 //
